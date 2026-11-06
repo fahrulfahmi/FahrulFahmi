@@ -417,9 +417,19 @@ jobs:
               for (const f of c.files) { fs.writeFileSync(f.file, C[c.kind === 'gist' ? 'repo' : c.kind](data, Object.assign({ gist: c.kind === 'gist' }, c.opts), C.palette(f.colors, c.hideBorder))); keep.add(f.file) }
             }
             for (const f of fs.readdirSync('profile-assets')) if (/^card-.*\.svg$/.test(f) && !keep.has('profile-assets/' + f)) fs.unlinkSync('profile-assets/' + f)
-      - name: Commit and push
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add -A profile-assets README.md
-          if git commit -m "Update profile"; then git push; fi
+     - name: Commit and push
+  run: |
+    git config user.name github-actions
+    git config user.email github-actions@github.com
+
+    git add -A profile-assets README.md
+
+    if git diff --cached --quiet; then
+      echo "No changes to commit"
+      exit 0
+    fi
+
+    git commit -m "Update profile"
+
+    git pull --rebase origin main
+    git push origin main
